@@ -3,25 +3,25 @@
             [hexagonal-bwertr.enterprise.schemas :as schemas]))
 
 (s/defschema RatingValue (schemas/lower-upper-bound-number 1 10))
-(s/defrecord Rating [value :- RatingValue])
+(s/defschema Rating {:value RatingValue})
 
 (def validate-rating (partial s/validate Rating))
 
-(defn create-rating [value]
-  (doto (->Rating value)
-    (validate-rating)))
+(s/with-fn-validation
+  (s/defn create-rating :- Rating [value]
+    {:value value}))
 
 (defprotocol RatingsRepository
-  (store! [this ^Rating rating])
+  (store! [this rating])
   (retrieve-all [this]))
 
 (defprotocol Ratings
-  (add! [this ^Rating rating])
+  (add! [this rating])
   (count* [this])
   (stats [this])
   (average [this]))
 
-(defn- add-rating! [^Rating rating repository]
+(s/defn add-rating! [rating :- Rating repository]
   (store! repository rating))
 
 (defn- count-ratings [repository]
